@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
@@ -6,39 +5,22 @@ const path = require('path');
 
 const app = express();
 
-// ============================================
-// MIDDLEWARE
-// ============================================
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
+// Middleware
+app.use(cors());
 app.use(express.json());
-
-// ============================================
-// SERVE STATIC FILES
-// ============================================
 app.use(express.static('public'));
 
-// ============================================
-// INITIALIZE ANTHROPIC
-// ============================================
+// Initialize Anthropic
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// ============================================
-// DATA STORE (In-memory for demo)
-// ============================================
+// Data store
 const userMemory = {};
 const subscribers = [];
-const queryLog = [];
 let totalQueries = 0;
 
-// ============================================
-// YOUR PERSONAL BRAND PERSONA
-// ============================================
+// Brand Persona
 const BRAND_PERSONA = `You are an extension of [YOUR NAME], a builder who ships fast and thinks in first principles.
 
 Your personality:
@@ -63,24 +45,19 @@ When responding, use this structure:
 
 NEVER give generic advice. ALWAYS be specific. If you don't know something, say so.`;
 
-// ============================================
-// HEALTH CHECK
-// ============================================
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: process.env.VERCEL ? 'vercel' : 'local'
+    version: '1.0.0'
   });
 });
 
-// ============================================
-// AGENT ENDPOINT
-// ============================================
+// Agent endpoint
 app.post('/api/agent', async (req, res) => {
   try {
-    const { query, userId, context } = req.body;
+    const { query, userId } = req.body;
 
     if (!query || query.trim().length === 0) {
       return res.status(400).json({ error: 'Query is required' });
@@ -89,15 +66,13 @@ app.post('/api/agent', async (req, res) => {
     const user = userId || 'anonymous';
     console.log(`[${user}] Agent query: ${query}`);
 
-    // Track query
     totalQueries++;
-    queryLog.push({ query, user, timestamp: new Date().toISOString() });
 
-    // Get user history for context
+    // Get user history
     const history = userMemory[user] || [];
     const recentHistory = history.slice(-5).join('\n');
 
-    // STEP 1: Analyze intent
+    // Analyze intent
     const intentResponse = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 200,
@@ -132,41 +107,26 @@ app.post('/api/agent', async (req, res) => {
       };
     }
 
-    // STEP 2: Build system prompt based on intent
+    // Build system prompt
     let systemPrompt = BRAND_PERSONA;
 
     if (intent.type === 'build') {
-      systemPrompt += `\n\nFocus on:
-1. Step-by-step implementation
-2. Code examples where relevant
-3. Gotchas to watch out for
-4. Time estimate
-5. Tools/tech stack recommendations`;
+      systemPrompt += `\n\nFocus on:\n1. Step-by-step implementation\n2. Code examples where relevant\n3. Gotchas to watch out for\n4. Time estimate\n5. Tools/tech stack recommendations`;
     }
 
     if (intent.type === 'debug') {
-      systemPrompt += `\n\nFocus on:
-1. Root cause analysis
-2. Step-by-step debugging
-3. Prevention strategies
-4. Similar issues others faced`;
+      systemPrompt += `\n\nFocus on:\n1. Root cause analysis\n2. Step-by-step debugging\n3. Prevention strategies\n4. Similar issues others faced`;
     }
 
     if (intent.type === 'strategy') {
-      systemPrompt += `\n\nFocus on:
-1. First principles thinking
-2. Trade-offs and alternatives
-3. Risk assessment
-4. Success metrics
-5. Timeline and milestones`;
+      systemPrompt += `\n\nFocus on:\n1. First principles thinking\n2. Trade-offs and alternatives\n3. Risk assessment\n4. Success metrics\n5. Timeline and milestones`;
     }
 
-    // Add user history if available
     if (recentHistory) {
       systemPrompt += `\n\nUser's previous queries:\n${recentHistory}`;
     }
 
-    // STEP 3: Generate response
+    // Generate response
     const response = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
@@ -204,15 +164,12 @@ app.post('/api/agent', async (req, res) => {
     console.error('Agent error:', error);
     res.status(500).json({ 
       error: 'Agent failed to respond', 
-      details: error.message,
-      fallback: "I'm having a moment. Try again? 😅"
+      details: error.message
     });
   }
 });
 
-// ============================================
-// RESEARCH ENDPOINT
-// ============================================
+// Research endpoint
 app.post('/api/research', async (req, res) => {
   try {
     const { topic } = req.body;
@@ -223,7 +180,6 @@ app.post('/api/research', async (req, res) => {
 
     console.log(`Starting research on: ${topic}`);
 
-    // Step 1: Generate research questions
     const questionsResponse = await client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
@@ -259,7 +215,6 @@ Be specific and actionable. No preamble or explanation.`
       return res.status(500).json({ error: 'Failed to parse questions' });
     }
 
-    // Step 2: Research each question
     const findings = [];
     for (const question of questions) {
       console.log(`  Researching: ${question}`);
@@ -286,7 +241,6 @@ Be concise but comprehensive.`
       findings.push({ question, answer });
     }
 
-    // Step 3: Synthesize
     const synthesisPrompt = `You are a research synthesis expert. I've researched a topic and gathered findings. Now create a comprehensive, well-structured research summary.
 
 Topic: "${topic}"
@@ -332,12 +286,10 @@ Be clear, insightful, and actionable. Format as readable Markdown.`;
   }
 });
 
-// ============================================
-// SUBSCRIBE ENDPOINT
-// ============================================
+// Subscribe endpoint
 app.post('/api/subscribe', async (req, res) => {
   try {
-    const { email, name, query } = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -349,8 +301,6 @@ app.post('/api/subscribe', async (req, res) => {
 
     subscribers.push({
       email,
-      name: name || 'Anonymous',
-      query: query || '',
       subscribedAt: new Date().toISOString()
     });
 
@@ -368,9 +318,7 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
-// ============================================
-// STATS ENDPOINT
-// ============================================
+// Stats endpoint
 app.get('/api/stats', async (req, res) => {
   res.json({
     total_queries: totalQueries,
@@ -378,14 +326,11 @@ app.get('/api/stats', async (req, res) => {
     total_subscribers: subscribers.length,
     average_response_time: '~2.3s',
     most_asked_topics: ['Building SaaS', 'AI Agents', 'Personal Branding', 'Shipping fast'],
-    uptime: process.uptime(),
     version: '1.0.0'
   });
 });
 
-// ============================================
-// CHANGELOG ENDPOINT
-// ============================================
+// Changelog endpoint
 app.get('/api/changelog', async (req, res) => {
   res.json({
     updates: [
@@ -411,31 +356,18 @@ app.get('/api/changelog', async (req, res) => {
   });
 });
 
-// ============================================
-// CATCH-ALL ROUTE - Serve index.html
-// ============================================
+// Catch-all route - serve index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ============================================
-// EXPORT FOR VERCEL
-// ============================================
+// EXPORT for Vercel (THIS IS CRITICAL)
 module.exports = app;
 
-// ============================================
-// LOCAL DEVELOPMENT ONLY
-// ============================================
+// Local development
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
-    console.log(`\n🚀 ${'='.repeat(50)}`);
-    console.log(`   YOUR PERSONAL BRAND AGENT`);
-    console.log(`${'='.repeat(50)}`);
-    console.log(`📍 Running on: http://localhost:${PORT}`);
-    console.log(`🤖 Agent endpoint: POST /api/agent`);
-    console.log(`📊 Stats: GET /api/stats`);
-    console.log(`📧 Subscribe: POST /api/subscribe`);
-    console.log(`${'='.repeat(50)}\n`);
+    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   });
 }
