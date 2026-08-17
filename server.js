@@ -17,19 +17,9 @@ app.use(cors({
 app.use(express.json());
 
 // ============================================
-// SERVE STATIC FILES (VERCEL SPECIFIC)
+// SERVE STATIC FILES
 // ============================================
-// In Vercel, static files are served from /public
-// But we need to handle both local and Vercel
-const isVercel = process.env.VERCEL === '1';
-
-if (isVercel) {
-  // On Vercel, static files are at /public
-  app.use(express.static('public'));
-} else {
-  // Local development
-  app.use(express.static('public'));
-}
+app.use(express.static('public'));
 
 // ============================================
 // INITIALIZE ANTHROPIC
@@ -49,7 +39,7 @@ let totalQueries = 0;
 // ============================================
 // YOUR PERSONAL BRAND PERSONA
 // ============================================
-const BRAND_PERSONA = `You are an extension of Naldo, a builder who ships fast and thinks in first principles.
+const BRAND_PERSONA = `You are an extension of [YOUR NAME], a builder who ships fast and thinks in first principles.
 
 Your personality:
 - Brutally honest, data-driven, and refuses generic advice
@@ -74,7 +64,7 @@ When responding, use this structure:
 NEVER give generic advice. ALWAYS be specific. If you don't know something, say so.`;
 
 // ============================================
-// HEALTH CHECK (Must work for Vercel)
+// HEALTH CHECK
 // ============================================
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -353,7 +343,6 @@ app.post('/api/subscribe', async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Check if already subscribed
     if (subscribers.find(s => s.email === email)) {
       return res.json({ success: true, message: 'Already subscribed!' });
     }
@@ -425,13 +414,7 @@ app.get('/api/changelog', async (req, res) => {
 // ============================================
 // CATCH-ALL ROUTE - Serve index.html
 // ============================================
-// This MUST be last
 app.get('*', (req, res) => {
-  // Check if it's an API route
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  // Serve index.html for all other routes
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

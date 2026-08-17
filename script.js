@@ -1,20 +1,10 @@
 // ============================================
-// CONFIGURATION - FIXED FOR VERCEL
+// CONFIGURATION
 // ============================================
-
-// This works for both local and production
-const API_URL = window.location.origin;
-const IS_VERCEL = window.location.hostname.includes('vercel.app') || 
-                  window.location.hostname !== 'localhost';
-
-console.log(`🌐 Environment: ${IS_VERCEL ? 'Production (Vercel)' : 'Local'}`);
-console.log(`📍 API URL: ${API_URL}`);
-
 let userId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 let isThinking = false;
 let messageCount = 0;
 
-// Save userId
 localStorage.setItem('userId', userId);
 
 // ============================================
@@ -34,29 +24,25 @@ const subscriberCount = document.getElementById('subscriberCount');
 loadStats();
 
 // ============================================
-// SEND QUERY - UPDATED WITH BETTER ERROR HANDLING
+// SEND QUERY
 // ============================================
 async function sendQuery() {
   const query = queryInput.value.trim();
   
   if (!query || isThinking) return;
 
-  // Add user message
   addMessage('user', query);
   queryInput.value = '';
   queryInput.style.height = 'auto';
   
-  // Show thinking state
   isThinking = true;
   sendBtn.disabled = true;
   inputStatus.textContent = '🤔 Thinking...';
   inputStatus.className = 'input-status thinking';
   
-  // Add loading message
   const loadingMsg = addMessage('agent', 'Thinking...', true);
 
   try {
-    // IMPORTANT: Use relative path for API calls
     const response = await fetch(`/api/agent`, {
       method: 'POST',
       headers: {
@@ -69,12 +55,10 @@ async function sendQuery() {
       }),
     });
 
-    // Check if response is OK
     if (!response.ok) {
       const text = await response.text();
       console.error('Server response:', text);
       
-      // Check if we got HTML back (indicates wrong endpoint)
       if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
         throw new Error('Server returned HTML instead of JSON. The API endpoint might be wrong.');
       }
@@ -89,13 +73,9 @@ async function sendQuery() {
 
     const data = await response.json();
     
-    // Remove loading message
     loadingMsg.remove();
-    
-    // Add response
     addMessage('agent', data.response, false, data.intent);
     
-    // Update stats
     messageCount++;
     if (messageCount % 3 === 0) {
       loadStats();
@@ -115,7 +95,7 @@ async function sendQuery() {
 }
 
 // ============================================
-// ADD MESSAGE (same as before)
+// ADD MESSAGE
 // ============================================
 function addMessage(role, content, isLoading = false, intent = null) {
   const messageDiv = document.createElement('div');
@@ -137,7 +117,7 @@ function addMessage(role, content, isLoading = false, intent = null) {
 
   const author = document.createElement('span');
   author.className = 'message-author';
-  author.textContent = role === 'user' ? 'You' : "Naldo's Agent";
+  author.textContent = role === 'user' ? 'You' : "AI Research Agent";
 
   const time = document.createElement('span');
   time.className = 'message-time';
@@ -151,26 +131,19 @@ function addMessage(role, content, isLoading = false, intent = null) {
   if (isLoading) {
     body.innerHTML = '<span class="loading-dots">Thinking</span>';
   } else {
-    // Convert markdown-like formatting
     let html = content;
-    // Code blocks
     html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
       return `<pre><code>${code.trim()}</code></pre>`;
     });
-    // Inline code
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    // Bold
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    // Lists
     html = html.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
     html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    // Paragraphs
     html = html.replace(/\n\n/g, '</p><p>');
     html = `<p>${html}</p>`;
     
     body.innerHTML = html;
 
-    // Add intent badge if available
     if (intent) {
       const intentBadge = document.createElement('div');
       intentBadge.style.cssText = `
@@ -200,8 +173,6 @@ function addMessage(role, content, isLoading = false, intent = null) {
   messageDiv.appendChild(contentDiv);
   
   messages.appendChild(messageDiv);
-  
-  // Scroll to bottom
   messages.scrollTop = messages.scrollHeight;
   
   return messageDiv;
@@ -216,7 +187,6 @@ function handleKeydown(event) {
     sendQuery();
   }
   
-  // Auto-resize textarea
   const textarea = event.target;
   textarea.style.height = 'auto';
   textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
@@ -285,7 +255,7 @@ async function researchTopic() {
 }
 
 // ============================================
-// LOAD STATS - UPDATED
+// LOAD STATS
 // ============================================
 async function loadStats() {
   try {
@@ -303,7 +273,7 @@ async function loadStats() {
 }
 
 // ============================================
-// SUBSCRIBE - UPDATED
+// SUBSCRIBE
 // ============================================
 async function subscribe() {
   const email = prompt('📧 Enter your email to get updates:');
@@ -330,7 +300,7 @@ async function subscribe() {
 }
 
 // ============================================
-// SHOW CHANGELOG - UPDATED
+// SHOW CHANGELOG
 // ============================================
 async function showChangelog() {
   try {
@@ -363,7 +333,6 @@ function showStats() {
 // ============================================
 queryInput.focus();
 
-console.log('🤖 Naldo\'s Agent loaded');
+console.log('🤖 AI Research Agent loaded');
 console.log(`👤 User ID: ${userId}`);
-console.log(`🌐 Environment: ${IS_VERCEL ? 'Vercel' : 'Local'}`);
 console.log('💬 Type your query and hit Enter');

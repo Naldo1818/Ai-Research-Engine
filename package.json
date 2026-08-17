@@ -1,15 +1,21 @@
 {
-  "name": "your-brand-agent",
+  "name": "ai-research-engine",
   "version": "1.0.0",
   "description": "Personal brand agent - brutally honest, data-driven advice for builders",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "vercel-build": "echo Hello"
+    "vercel-build": "npm install"
   },
-  "keywords": ["ai", "agent", "personal-brand", "claude", "anthropic"],
-  "author": "Naldo",
+  "keywords": [
+    "ai",
+    "agent",
+    "personal-brand",
+    "claude",
+    "anthropic"
+  ],
+  "author": "Your Name",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
