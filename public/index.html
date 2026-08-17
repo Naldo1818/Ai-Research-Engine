@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F.R.I.D.A.Y's Agent - Build, Ship, Scale</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">🤖</span>
+          <span class="logo-text">F.R.I.D.A.Y's Agent</span>
+        </div>
+        <div class="header-meta">
+          <span class="status-badge">⚡ Live</span>
+          <span class="version">v1.0</span>
+        </div>
+      </div>
+      <p class="tagline">Your personal advisor for building, shipping, and scaling. Brutally honest. Data-driven.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat">
+          <span class="stat-label">⚡ Queries</span>
+          <span class="stat-value" id="queryCount">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">👥 Users</span>
+          <span class="stat-value" id="userCount">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">📧 Subscribers</span>
+          <span class="stat-value" id="subscriberCount">0</span>
+        </div>
+      </div>
+
+      <!-- Chat Container -->
+      <div class="chat-container" id="chatContainer">
+        <div class="messages" id="messages">
+          <div class="message agent-message">
+            <div class="avatar">🤖</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">F.R.I.D.A.Y's Agent</span>
+                <span class="message-time">just now</span>
+              </div>
+              <p>Hey! I'm your personal agent. I'm here to give you brutally honest, actionable advice on building, shipping, and scaling.</p>
+              <p>Ask me anything. I'll give you the real playbook.</p>
+              <div class="quick-actions">
+                <span>Try asking:</span>
+                <button class="quick-action" data-query="How do I build a SaaS in 7 days?">🚀 Build SaaS in 7 days</button>
+                <button class="quick-action" data-query="What's the best way to grow my personal brand?">📈 Grow personal brand</button>
+                <button class="quick-action" data-query="How do I ship an AI agent?">🤖 Ship an AI agent</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+          <div class="input-wrapper">
+            <textarea 
+              id="queryInput" 
+              placeholder="Ask me anything... (e.g., 'How do I ship my first product?')"
+              rows="1"
+              onkeydown="handleKeydown(event)"
+            ></textarea>
+            <button id="sendBtn" onclick="sendQuery()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="input-footer">
+            <span class="input-hint">Enter to send · Shift+Enter for new line</span>
+            <span class="input-status" id="inputStatus">🟢 Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Research Mode (Hidden by default) -->
+      <div class="research-toggle">
+        <button onclick="toggleResearch()" class="toggle-btn">
+          🔍 Switch to Research Mode
+        </button>
+      </div>
+
+      <div class="research-container" id="researchContainer" style="display: none;">
+        <div class="research-input">
+          <input 
+            type="text" 
+            id="researchTopic" 
+            placeholder="Enter a topic to research deeply..."
+            onkeypress="if(event.key === 'Enter') researchTopic()"
+          >
+          <button onclick="researchTopic()">Research</button>
+        </div>
+        <div id="researchResults"></div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="#changelog" onclick="showChangelog()">📋 Changelog</a>
+          <a href="#" onclick="showStats()">📊 Stats</a>
+          <a href="#" onclick="subscribe()">📧 Subscribe</a>
+        </div>
+        <div class="footer-social">
+          <span>Built with ❤️ · </span>
+          <a href="https://x.com/yourhandle" target="_blank">X</a>
+          <span>·</span>
+          <a href="https://github.com/yourhandle" target="_blank">GitHub</a>
+          <span>·</span>
+          <a href="https://linkedin.com/in/yourhandle" target="_blank">LinkedIn</a>
+        </div>
+        <p class="footer-copy">© 2026 F.R.I.D.A.Y · Ship Fast, Iterate Faster</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
