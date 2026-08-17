@@ -1,7 +1,15 @@
 // ============================================
-// CONFIGURATION
+// CONFIGURATION - FIXED FOR VERCEL
 // ============================================
+
+// This works for both local and production
 const API_URL = window.location.origin;
+const IS_VERCEL = window.location.hostname.includes('vercel.app') || 
+                  window.location.hostname !== 'localhost';
+
+console.log(`🌐 Environment: ${IS_VERCEL ? 'Production (Vercel)' : 'Local'}`);
+console.log(`📍 API URL: ${API_URL}`);
+
 let userId = localStorage.getItem('userId') || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 let isThinking = false;
 let messageCount = 0;
@@ -26,7 +34,7 @@ const subscriberCount = document.getElementById('subscriberCount');
 loadStats();
 
 // ============================================
-// SEND QUERY
+// SEND QUERY - UPDATED WITH BETTER ERROR HANDLING
 // ============================================
 async function sendQuery() {
   const query = queryInput.value.trim();
@@ -48,7 +56,8 @@ async function sendQuery() {
   const loadingMsg = addMessage('agent', 'Thinking...', true);
 
   try {
-    const response = await fetch(`${API_URL}/api/agent`, {
+    // IMPORTANT: Use relative path for API calls
+    const response = await fetch(`/api/agent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,9 +69,22 @@ async function sendQuery() {
       }),
     });
 
+    // Check if response is OK
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.details || 'Failed to get response');
+      const text = await response.text();
+      console.error('Server response:', text);
+      
+      // Check if we got HTML back (indicates wrong endpoint)
+      if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+        throw new Error('Server returned HTML instead of JSON. The API endpoint might be wrong.');
+      }
+      
+      try {
+        const error = JSON.parse(text);
+        throw new Error(error.details || error.error || 'Failed to get response');
+      } catch (e) {
+        throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}`);
+      }
     }
 
     const data = await response.json();
@@ -80,6 +102,7 @@ async function sendQuery() {
     }
 
   } catch (error) {
+    console.error('Full error:', error);
     loadingMsg.remove();
     addMessage('agent', `⚠️ ${error.message || 'Something went wrong. Please try again.'}`);
   } finally {
@@ -92,7 +115,7 @@ async function sendQuery() {
 }
 
 // ============================================
-// ADD MESSAGE
+// ADD MESSAGE (same as before)
 // ============================================
 function addMessage(role, content, isLoading = false, intent = null) {
   const messageDiv = document.createElement('div');
@@ -231,13 +254,17 @@ async function researchTopic() {
   resultsDiv.innerHTML = '<div class="loading">🔍 Researching...</div>';
 
   try {
-    const response = await fetch(`${API_URL}/api/research`, {
+    const response = await fetch(`/api/research`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ topic })
     });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
 
     const data = await response.json();
     
@@ -258,11 +285,13 @@ async function researchTopic() {
 }
 
 // ============================================
-// LOAD STATS
+// LOAD STATS - UPDATED
 // ============================================
 async function loadStats() {
   try {
-    const response = await fetch(`${API_URL}/api/stats`);
+    const response = await fetch(`/api/stats`);
+    if (!response.ok) return;
+    
     const stats = await response.json();
     
     queryCount.textContent = stats.total_queries || 0;
@@ -274,14 +303,14 @@ async function loadStats() {
 }
 
 // ============================================
-// SUBSCRIBE
+// SUBSCRIBE - UPDATED
 // ============================================
 async function subscribe() {
   const email = prompt('📧 Enter your email to get updates:');
   if (!email) return;
 
   try {
-    const response = await fetch(`${API_URL}/api/subscribe`, {
+    const response = await fetch(`/api/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -301,11 +330,13 @@ async function subscribe() {
 }
 
 // ============================================
-// SHOW CHANGELOG
+// SHOW CHANGELOG - UPDATED
 // ============================================
 async function showChangelog() {
   try {
-    const response = await fetch(`${API_URL}/api/changelog`);
+    const response = await fetch(`/api/changelog`);
+    if (!response.ok) throw new Error('Failed to load');
+    
     const data = await response.json();
     
     let msg = '📋 Changelog\n\n';
@@ -334,4 +365,5 @@ queryInput.focus();
 
 console.log('🤖 [Your Name]\'s Agent loaded');
 console.log(`👤 User ID: ${userId}`);
+console.log(`🌐 Environment: ${IS_VERCEL ? 'Vercel' : 'Local'}`);
 console.log('💬 Type your query and hit Enter');

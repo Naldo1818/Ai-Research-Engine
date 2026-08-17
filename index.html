@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+  // Debug helper
+  console.log('📍 Current URL:', window.location.href);
+  console.log('📍 Origin:', window.location.origin);
+  
+  // Test API endpoint
+  fetch('/api/health')
+    .then(r => r.json())
+    .then(data => console.log('✅ API Health Check:', data))
+    .catch(err => console.error('❌ API Error:', err));
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>[Your Name]'s Agent - Build, Ship, Scale</title>
