@@ -2,8 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -29,7 +27,7 @@ let totalQueries = 0;
 // ============================================
 // YOUR PERSONAL BRAND PERSONA
 // ============================================
-const BRAND_PERSONA = `You are an extension of F.R.I.D.A.Y, a builder who ships fast and thinks in first principles.
+const BRAND_PERSONA = `You are an extension of [YOUR NAME], a builder who ships fast and thinks in first principles.
 
 Your personality:
 - Brutally honest, data-driven, and refuses generic advice
@@ -402,18 +400,25 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================
-// START SERVER
+// START SERVER (Updated for Vercel)
 // ============================================
-app.listen(PORT, () => {
-  console.log(`\n🚀 ${'='.repeat(50)}`);
-  console.log(`   YOUR PERSONAL BRAND AGENT`);
-  console.log(`${'='.repeat(50)}`);
-  console.log(`📍 Running on: http://localhost:${PORT}`);
-  console.log(`🤖 Agent endpoint: POST /api/agent`);
-  console.log(`📊 Stats: GET /api/stats`);
-  console.log(`📧 Subscribe: POST /api/subscribe`);
-  console.log(`${'='.repeat(50)}\n`);
-});
+
+// Export for Vercel serverless
+module.exports = app;
+
+// Only listen if running locally
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 ${'='.repeat(50)}`);
+    console.log(`   YOUR PERSONAL BRAND AGENT`);
+    console.log(`${'='.repeat(50)}`);
+    console.log(`📍 Running on: http://localhost:${PORT}`);
+    console.log(`🤖 Agent endpoint: POST /api/agent`);
+    console.log(`📊 Stats: GET /api/stats`);
+    console.log(`📧 Subscribe: POST /api/subscribe`);
+    console.log(`${'='.repeat(50)}\n`);
+  });
+}
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {

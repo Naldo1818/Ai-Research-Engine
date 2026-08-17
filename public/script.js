@@ -114,7 +114,7 @@ function addMessage(role, content, isLoading = false, intent = null) {
 
   const author = document.createElement('span');
   author.className = 'message-author';
-  author.textContent = role === 'user' ? 'You' : "F.R.I.D.A.Y's Agent";
+  author.textContent = role === 'user' ? 'You' : "[Your Name]'s Agent";
 
   const time = document.createElement('span');
   time.className = 'message-time';
@@ -332,6 +332,6 @@ function showStats() {
 // ============================================
 queryInput.focus();
 
-console.log('🤖 F.R.I.D.A.Y\'s Agent loaded');
+console.log('🤖 [Your Name]\'s Agent loaded');
 console.log(`👤 User ID: ${userId}`);
 console.log('💬 Type your query and hit Enter');
