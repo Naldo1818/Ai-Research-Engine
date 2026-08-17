@@ -3,11 +3,10 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["public/**"]
+      }
     }
   ],
   "routes": [
@@ -16,8 +15,24 @@
       "dest": "/server.js"
     },
     {
+      "src": "/static/(.*)",
+      "dest": "/public/static/$1"
+    },
+    {
+      "src": "/style.css",
+      "dest": "/public/style.css"
+    },
+    {
+      "src": "/script.js",
+      "dest": "/public/script.js"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/public/favicon.ico"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/public/index.html"
     }
   ]
 }

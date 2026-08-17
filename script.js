@@ -137,7 +137,7 @@ function addMessage(role, content, isLoading = false, intent = null) {
 
   const author = document.createElement('span');
   author.className = 'message-author';
-  author.textContent = role === 'user' ? 'You' : "[Your Name]'s Agent";
+  author.textContent = role === 'user' ? 'You' : "Naldo's Agent";
 
   const time = document.createElement('span');
   time.className = 'message-time';
@@ -363,7 +363,7 @@ function showStats() {
 // ============================================
 queryInput.focus();
 
-console.log('🤖 [Your Name]\'s Agent loaded');
+console.log('🤖 Naldo\'s Agent loaded');
 console.log(`👤 User ID: ${userId}`);
 console.log(`🌐 Environment: ${IS_VERCEL ? 'Vercel' : 'Local'}`);
 console.log('💬 Type your query and hit Enter');

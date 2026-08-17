@@ -2,16 +2,38 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// ============================================
+// MIDDLEWARE
+// ============================================
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
-app.use(express.static('public'));
 
-// Initialize Anthropic
+// ============================================
+// SERVE STATIC FILES (VERCEL SPECIFIC)
+// ============================================
+// In Vercel, static files are served from /public
+// But we need to handle both local and Vercel
+const isVercel = process.env.VERCEL === '1';
+
+if (isVercel) {
+  // On Vercel, static files are at /public
+  app.use(express.static('public'));
+} else {
+  // Local development
+  app.use(express.static('public'));
+}
+
+// ============================================
+// INITIALIZE ANTHROPIC
+// ============================================
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -27,7 +49,7 @@ let totalQueries = 0;
 // ============================================
 // YOUR PERSONAL BRAND PERSONA
 // ============================================
-const BRAND_PERSONA = `You are an extension of [YOUR NAME], a builder who ships fast and thinks in first principles.
+const BRAND_PERSONA = `You are an extension of Naldo, a builder who ships fast and thinks in first principles.
 
 Your personality:
 - Brutally honest, data-driven, and refuses generic advice
@@ -52,7 +74,19 @@ When responding, use this structure:
 NEVER give generic advice. ALWAYS be specific. If you don't know something, say so.`;
 
 // ============================================
-// AGENT ENDPOINT (Main)
+// HEALTH CHECK (Must work for Vercel)
+// ============================================
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    environment: process.env.VERCEL ? 'vercel' : 'local'
+  });
+});
+
+// ============================================
+// AGENT ENDPOINT
 // ============================================
 app.post('/api/agent', async (req, res) => {
   try {
@@ -187,7 +221,7 @@ app.post('/api/agent', async (req, res) => {
 });
 
 // ============================================
-// RESEARCH ENDPOINT (Original)
+// RESEARCH ENDPOINT
 // ============================================
 app.post('/api/research', async (req, res) => {
   try {
@@ -389,25 +423,28 @@ app.get('/api/changelog', async (req, res) => {
 });
 
 // ============================================
-// HEALTH CHECK
+// CATCH-ALL ROUTE - Serve index.html
 // ============================================
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+// This MUST be last
+app.get('*', (req, res) => {
+  // Check if it's an API route
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  // Serve index.html for all other routes
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ============================================
-// START SERVER (Updated for Vercel)
+// EXPORT FOR VERCEL
 // ============================================
-
-// Export for Vercel serverless
 module.exports = app;
 
-// Only listen if running locally
+// ============================================
+// LOCAL DEVELOPMENT ONLY
+// ============================================
 if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(`\n🚀 ${'='.repeat(50)}`);
     console.log(`   YOUR PERSONAL BRAND AGENT`);
@@ -419,9 +456,3 @@ if (require.main === module) {
     console.log(`${'='.repeat(50)}\n`);
   });
 }
-
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down gracefully...');
-  process.exit(0);
-});

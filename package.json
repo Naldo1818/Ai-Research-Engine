@@ -9,7 +9,7 @@
     "vercel-build": "echo Hello"
   },
   "keywords": ["ai", "agent", "personal-brand", "claude", "anthropic"],
-  "author": "[Your Name]",
+  "author": "Naldo",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
